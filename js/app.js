@@ -44,6 +44,7 @@ async function init() {
 function bindEvents() {
   $('#characterSelect').addEventListener('change', (e) => {
     state.selectedCharacter = Number(e.target.value);
+    updateCharPortrait();
     saveState(state);
     render();
   });
@@ -105,6 +106,19 @@ function populateCharacterSelect() {
   sel.innerHTML = characters.map((c) =>
     `<option value="${c.id}" ${c.id === state.selectedCharacter ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
   ).join('');
+  updateCharPortrait();
+}
+
+function updateCharPortrait() {
+  const char = characters.find((c) => c.id === state.selectedCharacter);
+  const img = $('#charPortrait');
+  if (!char?.thumb) {
+    img.removeAttribute('src');
+    img.alt = '';
+    return;
+  }
+  img.src = char.thumb;
+  img.alt = char.name;
 }
 
 function applyFilterCheckboxes() {

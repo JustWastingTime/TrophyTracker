@@ -25,10 +25,6 @@
       </div>
 
       <div class="top-controls">
-        <label class="char-select-wrap">
-          <span class="label">Running as</span>
-          <select id="characterSelect" aria-label="Select character"></select>
-        </label>
         <button type="button" class="btn btn-ghost" id="uploadBtn" title="Upload trophy_data.json">Upload data</button>
         <button type="button" class="btn btn-ghost" id="shareBtn" title="Copy shareable link">Share link</button>
         <input type="file" id="fileInput" accept=".json,application/json" hidden>
@@ -68,7 +64,13 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-card">
         <h2>Filters</h2>
-        <p class="sidebar-hint">Narrow down which races you still need.</p>
+        <label class="char-picker" for="characterSelect">
+          <img class="char-portrait" id="charPortrait" width="56" height="56" alt="">
+          <span class="char-picker-text">
+            <span class="char-picker-label">Running as</span>
+            <select id="characterSelect" aria-label="Select character"></select>
+          </span>
+        </label>
 
         <fieldset class="filter-group">
           <legend>Distance</legend>
