@@ -71,3 +71,49 @@ export function distanceLabel(d) {
   const map = { Sprint: 'Sprint', Mile: 'Mile', Medium: 'Med', Long: 'Long' };
   return map[d] || d;
 }
+
+/**
+ * Races that share a trophy (e.g. Classic + Senior Takarazuka Kinen) are grouped
+ * by name and banner art so one win counts for every calendar slot.
+ */
+export function buildRaceAliasIndex(races) {
+  const byName = new Map();
+
+  for (const race of races) {
+    if (!byName.has(race.name)) byName.set(race.name, []);
+    byName.get(race.name).push(race);
+  }
+
+  const aliasesById = new Map();
+  const groups = [];
+
+  for (const [name, list] of byName) {
+    if (list.length < 2) {
+      groups.push([list[0].id]);
+      aliasesById.set(list[0].id, [list[0].id]);
+      continue;
+    }
+
+    const byThumb = new Map();
+    for (const race of list) {
+      const key = race.thumb || name;
+      if (!byThumb.has(key)) byThumb.set(key, []);
+      byThumb.get(key).push(race.id);
+    }
+
+    for (const ids of byThumb.values()) {
+      groups.push(ids);
+      for (const id of ids) aliasesById.set(id, ids);
+    }
+  }
+
+  return { aliasesById, groups };
+}
+
+export function expandRaceIds(raceIds, aliasesById) {
+  const out = new Set();
+  for (const id of raceIds) {
+    for (const alias of aliasesById.get(id) || [id]) out.add(alias);
+  }
+  return out;
+}

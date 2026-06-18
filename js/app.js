@@ -1,6 +1,7 @@
-import { groupRacesByTimeline, distanceLabel } from './calendar.js';
+import { groupRacesByTimeline, distanceLabel, buildRaceAliasIndex } from './calendar.js';
 import {
-  loadState, saveState, getEffectiveWins, toggleRaceWin, mergeImportedWins, buildShareUrl,
+  loadState, saveState, resetState, getEffectiveWins, toggleRaceWin, mergeImportedWins, buildShareUrl,
+  countWonGroups, isTrophyGroupWon,
 } from './storage.js';
 import { parseTrophyData, setsToArrays } from './trophy.js';
 
@@ -9,6 +10,9 @@ let characters = [];
 let trophyMap = {};
 let state = loadState();
 let timeline = [];
+let aliasesById = new Map();
+let trophyGroups = [];
+let raceById = new Map();
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -23,6 +27,8 @@ async function init() {
   characters = c;
   trophyMap = t;
   timeline = groupRacesByTimeline(races);
+  ({ aliasesById, groups: trophyGroups } = buildRaceAliasIndex(races));
+  raceById = new Map(races.map((race) => [race.id, race]));
 
   if (!state.selectedCharacter && characters.length) {
     state.selectedCharacter = characters[0].id;
@@ -57,6 +63,8 @@ function bindEvents() {
       toast('Could not copy — copy the URL from your address bar.');
     });
   });
+
+  $('#resetBtn').addEventListener('click', handleReset);
 
   $$('[data-filter]').forEach((el) => {
     el.addEventListener('change', () => {
@@ -128,13 +136,13 @@ async function handleFileUpload(e) {
     const asArrays = setsToArrays(parsed);
     const totalWins = Object.values(asArrays).reduce((n, arr) => n + arr.length, 0);
 
-    mergeImportedWins(state, asArrays);
+    mergeImportedWins(state, asArrays, aliasesById);
     saveState(state);
     dismissWelcome();
     render();
 
     if (totalWins === 0) {
-      toast('File loaded, but no wins found (win_count is 0 for all entries). You can still check races manually.');
+      toast('File loaded, but no character trophies were found. You can still check races manually.');
     } else {
       toast(`Imported ${totalWins} wins across ${Object.keys(asArrays).length} characters.`);
     }
@@ -147,6 +155,20 @@ function dismissWelcome() {
   state.welcomeDismissed = true;
   saveState(state);
   updateWelcome();
+}
+
+function handleReset() {
+  if (!confirm('Reset all uploaded data, checkmarks, and progress? You will return to the welcome screen.')) {
+    return;
+  }
+
+  state = resetState();
+  if (characters.length) state.selectedCharacter = characters[0].id;
+  populateCharacterSelect();
+  applyFilterCheckboxes();
+  render();
+  updateWelcome();
+  toast('Progress cleared. Upload your trophy data when you are ready.');
 }
 
 function updateWelcome() {
@@ -164,7 +186,7 @@ function render() {
 function renderCalendar() {
   const container = $('#calendar');
   const charaId = state.selectedCharacter;
-  const wins = getEffectiveWins(state, charaId);
+  const wins = getEffectiveWins(state, charaId, aliasesById);
 
   let html = '<div class="timeline-line" aria-hidden="true"></div>';
 
@@ -199,12 +221,19 @@ function renderCalendar() {
   container.querySelectorAll('.race-card').forEach((card) => {
     card.addEventListener('click', () => {
       const raceId = card.dataset.raceId;
-      toggleRaceWin(state, charaId, raceId);
+      toggleRaceWin(state, charaId, raceId, aliasesById);
       saveState(state);
-      const won = getEffectiveWins(state, charaId).has(raceId);
-      card.classList.toggle('won', won);
-      card.dataset.won = String(won);
-      card.setAttribute('aria-pressed', won);
+      const linkedIds = aliasesById.get(raceId) || [raceId];
+
+      for (const id of linkedIds) {
+        const linkedCard = container.querySelector(`[data-race-id="${CSS.escape(id)}"]`);
+        if (!linkedCard) continue;
+        const linkedWon = getEffectiveWins(state, charaId, aliasesById).has(id);
+        linkedCard.classList.toggle('won', linkedWon);
+        linkedCard.dataset.won = String(linkedWon);
+        linkedCard.setAttribute('aria-pressed', linkedWon);
+      }
+
       renderProgress();
       applyFilters();
     });
@@ -237,9 +266,8 @@ function raceCardHtml(race, won) {
 
 function renderProgress() {
   const charaId = state.selectedCharacter;
-  const wins = getEffectiveWins(state, charaId);
-  const total = races.length;
-  const wonCount = races.filter((r) => wins.has(r.id)).length;
+  const total = trophyGroups.length;
+  const wonCount = countWonGroups(state, charaId, trophyGroups);
   const pct = total ? Math.round((wonCount / total) * 100) : 0;
 
   $('#overallFill').style.width = `${pct}%`;
@@ -247,9 +275,9 @@ function renderProgress() {
   $('#overallPct').textContent = `${pct}%`;
 
   for (const grade of ['G1', 'G2', 'G3']) {
-    const gradeRaces = races.filter((r) => r.grade === grade);
-    const gradeWon = gradeRaces.filter((r) => wins.has(r.id)).length;
-    const gradeTotal = gradeRaces.length;
+    const gradeGroups = trophyGroups.filter((group) => raceById.get(group[0])?.grade === grade);
+    const gradeWon = gradeGroups.filter((group) => isTrophyGroupWon(state, charaId, group)).length;
+    const gradeTotal = gradeGroups.length;
     const gradePct = gradeTotal ? (gradeWon / gradeTotal) * 100 : 0;
     $(`#${grade.toLowerCase()}Fill`).style.width = `${gradePct}%`;
     $(`#${grade.toLowerCase()}Fraction`).textContent = `${gradeWon}/${gradeTotal}`;
@@ -258,7 +286,7 @@ function renderProgress() {
 
 function getFilteredRaces(charaId, applyVisibilityOnly = true) {
   const f = state.filters;
-  const wins = getEffectiveWins(state, charaId);
+  const wins = getEffectiveWins(state, charaId, aliasesById);
 
   return races.filter((race) => {
     if (!f.distance.includes(race.distance)) return false;
@@ -275,7 +303,7 @@ function getFilteredRaces(charaId, applyVisibilityOnly = true) {
 
 function applyFilters() {
   const f = state.filters;
-  const wins = getEffectiveWins(state, state.selectedCharacter);
+  const wins = getEffectiveWins(state, state.selectedCharacter, aliasesById);
 
   $$('.race-card').forEach((card) => {
     const grade = card.dataset.grade;

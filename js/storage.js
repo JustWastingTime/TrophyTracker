@@ -19,6 +19,18 @@ export function saveState(state) {
   updateHash(state);
 }
 
+export function resetState() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch { /* ignore */ }
+
+  if (location.hash) {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+
+  return defaultState();
+}
+
 function defaultState() {
   return {
     importedWins: {},
@@ -70,6 +82,16 @@ function updateHash(state) {
   }
 }
 
+function expandIds(raceId, aliasesById) {
+  return aliasesById?.get(raceId) || [raceId];
+}
+
+function isGroupWon(imported, manual, unwins, raceId, aliasesById) {
+  return expandIds(raceId, aliasesById).some(
+    (id) => (imported.has(id) || manual.has(id)) && !unwins.has(id),
+  );
+}
+
 export function getWinsForCharacter(state, charaId) {
   const cid = String(charaId);
   const imported = new Set(state.importedWins[cid] || []);
@@ -81,28 +103,30 @@ export function isRaceWon(state, charaId, raceId) {
   return getWinsForCharacter(state, charaId).has(raceId);
 }
 
-export function toggleRaceWin(state, charaId, raceId) {
+export function toggleRaceWin(state, charaId, raceId, aliasesById) {
   const cid = String(charaId);
+  const ids = expandIds(raceId, aliasesById);
   const imported = new Set(state.importedWins[cid] || []);
   const manual = new Set(state.manualWins[cid] || []);
-  const currentlyWon = imported.has(raceId) || manual.has(raceId);
+  const groupWon = isGroupWon(imported, manual, new Set(state.manualUnwins?.[cid] || []), raceId, aliasesById);
 
-  if (currentlyWon) {
-    if (manual.has(raceId)) {
-      manual.delete(raceId);
-    } else if (imported.has(raceId)) {
-      // Can't un-import; add to a "hidden" list — use manual as override
-      // Store un-won overrides separately
-      if (!state.manualUnwins) state.manualUnwins = {};
-      if (!state.manualUnwins[cid]) state.manualUnwins[cid] = [];
-      const unwins = new Set(state.manualUnwins[cid]);
-      unwins.add(raceId);
-      state.manualUnwins[cid] = [...unwins];
+  if (groupWon) {
+    for (const id of ids) {
+      manual.delete(id);
+      if (imported.has(id)) {
+        if (!state.manualUnwins) state.manualUnwins = {};
+        if (!state.manualUnwins[cid]) state.manualUnwins[cid] = [];
+        const unwins = new Set(state.manualUnwins[cid]);
+        unwins.add(id);
+        state.manualUnwins[cid] = [...unwins];
+      }
     }
   } else {
-    manual.add(raceId);
-    if (state.manualUnwins?.[cid]) {
-      state.manualUnwins[cid] = state.manualUnwins[cid].filter((id) => id !== raceId);
+    for (const id of ids) {
+      manual.add(id);
+      if (state.manualUnwins?.[cid]) {
+        state.manualUnwins[cid] = state.manualUnwins[cid].filter((uid) => uid !== id);
+      }
     }
   }
 
@@ -110,17 +134,52 @@ export function toggleRaceWin(state, charaId, raceId) {
   return state;
 }
 
-export function getEffectiveWins(state, charaId) {
+export function getEffectiveWins(state, charaId, aliasesById) {
   const cid = String(charaId);
-  const wins = getWinsForCharacter(state, charaId);
+  const imported = new Set(state.importedWins[cid] || []);
+  const manual = new Set(state.manualWins[cid] || []);
   const unwins = new Set(state.manualUnwins?.[cid] || []);
-  for (const id of unwins) wins.delete(id);
-  return wins;
+  const expanded = new Set();
+
+  for (const id of [...imported, ...manual]) {
+    if (unwins.has(id)) continue;
+    for (const alias of expandIds(id, aliasesById)) expanded.add(alias);
+  }
+
+  return expanded;
 }
 
-export function mergeImportedWins(state, winsByCharacter) {
-  state.importedWins = winsByCharacter;
+function isGroupWonInState(state, charaId, group) {
+  const cid = String(charaId);
+  const imported = new Set(state.importedWins[cid] || []);
+  const manual = new Set(state.manualWins[cid] || []);
+  const unwins = new Set(state.manualUnwins?.[cid] || []);
+  return group.some((id) => (imported.has(id) || manual.has(id)) && !unwins.has(id));
+}
+
+export function isTrophyGroupWon(state, charaId, group) {
+  return isGroupWonInState(state, charaId, group);
+}
+
+export function countWonGroups(state, charaId, groups) {
+  return groups.filter((group) => isGroupWonInState(state, charaId, group)).length;
+}
+
+export function mergeImportedWins(state, winsByCharacter, aliasesById) {
+  const expanded = {};
+  for (const [cid, raceIds] of Object.entries(winsByCharacter)) {
+    expanded[cid] = [...expandRaceIdsFromArrays(raceIds, aliasesById)];
+  }
+  state.importedWins = expanded;
   return state;
+}
+
+function expandRaceIdsFromArrays(raceIds, aliasesById) {
+  const out = new Set();
+  for (const id of raceIds) {
+    for (const alias of expandIds(id, aliasesById)) out.add(alias);
+  }
+  return out;
 }
 
 export function buildShareUrl() {

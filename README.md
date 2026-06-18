@@ -23,12 +23,19 @@ Then open http://localhost:3000
 
 ## GitHub Pages
 
-1. Create a new repo (e.g. `trophy-tracker`) and push this folder
-2. **Settings → Pages → Deploy from branch**
-3. Branch: `main`, folder: `/` (root)
-4. Live at `https://<username>.github.io/trophy-tracker/`
+This repo is already on GitHub at [JustWastingTime/TrophyTracker](https://github.com/JustWastingTime/TrophyTracker).
 
-No build step required — it's plain HTML/CSS/JS.
+1. Push your latest changes to `master`
+2. On GitHub: **Settings → Pages**
+3. **Build and deployment → Source:** Deploy from a branch
+4. **Branch:** `master`, folder **`/ (root)`**, then **Save**
+5. After a minute or two, the site is live at:
+
+   **https://justwastingtime.github.io/TrophyTracker/**
+
+No build step — plain HTML/CSS/JS. Bookmark that URL (or share it) so people can use the tracker.
+
+If you use a different repo name or branch, the URL is `https://<username>.github.io/<repo-name>/`.
 
 ## Updating race data
 

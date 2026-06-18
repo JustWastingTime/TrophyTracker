@@ -1,6 +1,9 @@
 /**
  * Parse trophy_data.json into wins per character.
  * trophy_id maps to race id via trophyMap.
+ *
+ * A chara_id entry means the trophy was won — win_count is often 0 when
+ * that field failed to load from the game export.
  */
 export function parseTrophyData(raw, trophyMap) {
   const winsByCharacter = {};
@@ -15,7 +18,7 @@ export function parseTrophyData(raw, trophyMap) {
 
     for (const instance of trophy.race_instance_info_array || []) {
       for (const chara of instance.trophy_chara_info_array || []) {
-        if (!chara.win_count || chara.win_count <= 0) continue;
+        if (chara.chara_id == null) continue;
         const cid = String(chara.chara_id);
         if (!winsByCharacter[cid]) winsByCharacter[cid] = new Set();
         winsByCharacter[cid].add(raceId);

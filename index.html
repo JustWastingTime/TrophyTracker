@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trophy Tracker — Uma Musume Completionist</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -102,11 +104,14 @@
       <div class="sidebar-card help-card">
         <h2>How it works</h2>
         <ol>
-          <li>Upload your <code>trophy_data.json</code> from the game.</li>
+          <li>Download <a href="https://github.com/Werseter/umadump/releases/tag/v2.2.0" target="_blank" rel="noopener noreferrer">umadump.exe</a> (v2.2.0). Run it while Umamusume (Steam) is open — it creates <code>trophy_data.json</code>.</li>
+          <li>Upload that file here with <strong>Upload data</strong>.</li>
           <li>Pick the uma you're running a career with.</li>
           <li>Won races show a checkmark — click any card to toggle manually.</li>
           <li>Use <strong>Share link</strong> to save progress in the URL.</li>
         </ol>
+        <p class="disclaimer">umadump is a third-party tool not endorsed by Cygames. Use it at your own risk.</p>
+        <button type="button" class="btn btn-ghost btn-block btn-reset" id="resetBtn">Reset Data</button>
       </div>
     </aside>
   </main>
@@ -120,30 +125,38 @@
         <div class="welcome-step">
           <span class="step-num">1</span>
           <div>
-            <strong>Upload your trophy data</strong>
-            <p>Export <code>trophy_data.json</code> from your game files and upload it here. We'll mark races you've already won.</p>
+            <strong>Export your trophy data</strong>
+            <p>Download <a href="https://github.com/Werseter/umadump/releases/tag/v2.2.0" target="_blank" rel="noopener noreferrer">umadump.exe</a> (v2.2.0). With Umamusume (Steam) running, launch it — it generates <code>trophy_data.json</code> on your PC.</p>
           </div>
         </div>
         <div class="welcome-step">
           <span class="step-num">2</span>
+          <div>
+            <strong>Upload it here</strong>
+            <p>Upload <code>trophy_data.json</code> below. We'll check off races you've already won on each character.</p>
+          </div>
+        </div>
+        <div class="welcome-step">
+          <span class="step-num">3</span>
           <div>
             <strong>Pick your uma</strong>
             <p>Select who you're running. Progress is tracked per character.</p>
           </div>
         </div>
         <div class="welcome-step">
-          <span class="step-num">3</span>
+          <span class="step-num">4</span>
           <div>
             <strong>Plan &amp; check off</strong>
             <p>Use filters to find gaps. Click races to manually update as you play.</p>
           </div>
         </div>
       </div>
+      <p class="disclaimer">umadump is a third-party tool not endorsed by Cygames. Use it at your own risk.</p>
       <div class="welcome-actions">
         <button type="button" class="btn btn-primary" id="welcomeUpload">Upload trophy_data.json</button>
         <button type="button" class="btn btn-ghost" id="welcomeSkip">Browse calendar first</button>
       </div>
-      <p class="welcome-note">No upload? You can still browse and manually check races. Data stays in your browser unless you share a link.</p>
+      <p class="welcome-note">No upload yet? You can still browse and manually check races. Data stays in your browser unless you share a link.</p>
     </div>
   </div>
 

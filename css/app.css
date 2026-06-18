@@ -464,6 +464,8 @@ body {
   border: none;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .btn:active { transform: scale(0.97); }
@@ -492,6 +494,16 @@ body {
 
 .btn-block { width: 100%; }
 
+.btn-reset {
+  margin-top: 1rem;
+  color: var(--accent-deep);
+  border-color: var(--accent-soft);
+}
+
+.btn-reset:hover {
+  background: rgba(224, 122, 95, 0.1);
+}
+
 /* ── Welcome overlay ── */
 .welcome-overlay {
   position: fixed;
@@ -511,10 +523,12 @@ body {
   background: var(--paper);
   border-radius: calc(var(--radius) + 4px);
   padding: 2rem;
-  max-width: 520px;
+  max-width: 560px;
   width: 100%;
   box-shadow: var(--shadow);
   text-align: center;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
 }
 
 .welcome-emoji { font-size: 2.5rem; margin-bottom: 0.5rem; }
@@ -557,6 +571,27 @@ body {
 
 .welcome-step strong { display: block; font-size: 0.9rem; }
 .welcome-step p { margin: 0.15rem 0 0; font-size: 0.82rem; color: var(--ink-soft); }
+.welcome-step a { color: var(--accent-deep); }
+
+.disclaimer {
+  text-align: left;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  background: var(--bg-warm);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  margin: 0 0 1.25rem;
+}
+
+.help-card .disclaimer {
+  margin: 0.85rem 0 0;
+}
+
+.help-card a {
+  color: var(--accent-deep);
+}
 
 .welcome-actions {
   display: flex;
