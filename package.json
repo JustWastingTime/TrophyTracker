@@ -1,0 +1,12 @@
+{
+  "name": "uma-trophy-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Track Umamusume career trophies toward the Completionist title",
+  "type": "module",
+  "scripts": {
+    "start": "npx serve .",
+    "build-data": "node scripts/build-data.js"
+  },
+  "license": "MIT"
+}
