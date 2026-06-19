@@ -544,6 +544,7 @@ body {
   padding: 1rem;
 }
 
+html.welcome-dismissed .welcome-overlay,
 .welcome-overlay.dismissed { display: none; }
 
 .welcome-card {

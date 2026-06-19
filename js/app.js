@@ -187,8 +187,13 @@ function handleReset() {
 
 function updateWelcome() {
   const el = $('#welcomeOverlay');
-  if (state.welcomeDismissed) el.classList.add('dismissed');
-  else el.classList.remove('dismissed');
+  if (state.welcomeDismissed) {
+    el.classList.add('dismissed');
+    document.documentElement.classList.add('welcome-dismissed');
+  } else {
+    el.classList.remove('dismissed');
+    document.documentElement.classList.remove('welcome-dismissed');
+  }
 }
 
 function render() {
