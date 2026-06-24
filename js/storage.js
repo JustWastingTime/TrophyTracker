@@ -39,7 +39,7 @@ function defaultState() {
     selectedCharacter: null,
     welcomeDismissed: false,
     filters: {
-      distance: ['Sprint', 'Mile', 'Medium', 'Long'],
+      distance: ['Sprint', 'Mile', 'Medium', 'Long', 'Varies'],
       terrain: ['Turf', 'Dirt'],
       grade: ['G1', 'G2', 'G3'],
       showWonOnly: false,

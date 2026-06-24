@@ -33,6 +33,9 @@ async function init() {
   if (!state.selectedCharacter && characters.length) {
     state.selectedCharacter = characters[0].id;
   }
+  if (!state.filters.distance.includes('Varies')) {
+    state.filters.distance.push('Varies');
+  }
 
   bindEvents();
   populateCharacterSelect();
@@ -89,7 +92,7 @@ function bindEvents() {
 
   $('#resetFilters').addEventListener('click', () => {
     state.filters = {
-      distance: ['Sprint', 'Mile', 'Medium', 'Long'],
+      distance: ['Sprint', 'Mile', 'Medium', 'Long', 'Varies'],
       terrain: ['Turf', 'Dirt'],
       grade: ['G1', 'G2', 'G3'],
       showWonOnly: false,
