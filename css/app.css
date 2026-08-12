@@ -21,6 +21,25 @@
   --font: "DM Sans", system-ui, sans-serif;
   --font-display: "Fraunces", Georgia, serif;
   --top-h: 120px;
+  --topbar-bg: rgba(255, 253, 249, 0.92);
+}
+
+html.theme-dark {
+  color-scheme: dark;
+  --bg: #1f2025;
+  --bg-warm: #2a2d33;
+  --paper: #2f333b;
+  --ink: #f1ede7;
+  --ink-soft: #bbb4a9;
+  --accent: #df8f78;
+  --accent-soft: #734d42;
+  --accent-deep: #f1b09b;
+  --sage: #7fb39e;
+  --sage-soft: #3f564d;
+  --line: #454c57;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --topbar-bg: rgba(38, 42, 49, 0.92);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -51,7 +70,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 253, 249, 0.92);
+  background: var(--topbar-bg);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
@@ -511,6 +530,11 @@ body {
 }
 
 .btn-ghost:hover { background: var(--bg-warm); }
+
+.theme-toggle[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
 
 .btn-soft {
   background: var(--sage-soft);

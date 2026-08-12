@@ -5,6 +5,7 @@ import {
 } from './storage.js';
 import { parseTrophyData, setsToArrays } from './trophy.js';
 
+const THEME_KEY = 'trophy-tracker-theme';
 let races = [];
 let characters = [];
 let trophyMap = {};
@@ -13,11 +14,13 @@ let timeline = [];
 let aliasesById = new Map();
 let trophyGroups = [];
 let raceById = new Map();
+let isDarkTheme = false;
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 async function init() {
+  initTheme();
   const [r, c, t] = await Promise.all([
     fetch('data/races.json').then((r) => r.json()),
     fetch('data/characters.json').then((r) => r.json()),
@@ -66,6 +69,10 @@ function bindEvents() {
     }).catch(() => {
       toast('Could not copy — copy the URL from your address bar.');
     });
+  });
+
+  $('#themeToggle').addEventListener('click', () => {
+    setTheme(!isDarkTheme);
   });
 
   $('#resetBtn').addEventListener('click', handleReset);
@@ -197,6 +204,33 @@ function updateWelcome() {
     el.classList.remove('dismissed');
     document.documentElement.classList.remove('welcome-dismissed');
   }
+}
+
+function initTheme() {
+  let initialDark = false;
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'dark') initialDark = true;
+    else if (saved === 'light') initialDark = false;
+    else initialDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  } catch {
+    initialDark = false;
+  }
+  setTheme(initialDark, false);
+}
+
+function setTheme(dark, persist = true) {
+  isDarkTheme = dark;
+  document.documentElement.classList.toggle('theme-dark', dark);
+  const btn = $('#themeToggle');
+  btn.setAttribute('aria-pressed', String(dark));
+  btn.textContent = dark ? '☀ Light' : '🌙 Dark';
+  btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+
+  if (!persist) return;
+  try {
+    localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
+  } catch { /* ignore */ }
 }
 
 function render() {
