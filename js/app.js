@@ -21,6 +21,7 @@ const $$ = (sel) => document.querySelectorAll(sel);
 
 async function init() {
   initTheme();
+  setupThemeToggle();
   const [r, c, t] = await Promise.all([
     fetch('data/races.json').then((r) => r.json()),
     fetch('data/characters.json').then((r) => r.json()),
@@ -69,10 +70,6 @@ function bindEvents() {
     }).catch(() => {
       toast('Could not copy — copy the URL from your address bar.');
     });
-  });
-
-  $('#themeToggle').addEventListener('click', () => {
-    setTheme(!isDarkTheme);
   });
 
   $('#resetBtn').addEventListener('click', handleReset);
@@ -219,13 +216,24 @@ function initTheme() {
   setTheme(initialDark, false);
 }
 
+function setupThemeToggle() {
+  const btn = $('#themeToggle');
+  if (!btn || btn.dataset.boundTheme === '1') return;
+  btn.dataset.boundTheme = '1';
+  btn.addEventListener('click', () => {
+    setTheme(!isDarkTheme);
+  });
+}
+
 function setTheme(dark, persist = true) {
   isDarkTheme = dark;
   document.documentElement.classList.toggle('theme-dark', dark);
   const btn = $('#themeToggle');
-  btn.setAttribute('aria-pressed', String(dark));
-  btn.textContent = dark ? '☀ Light' : '🌙 Dark';
-  btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+  if (btn) {
+    btn.setAttribute('aria-pressed', String(dark));
+    btn.textContent = dark ? '☀ Light' : '🌙 Dark';
+    btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+  }
 
   if (!persist) return;
   try {
